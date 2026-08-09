@@ -1,0 +1,35 @@
+# Originally created by Crt Vavros, ZeroPass (ICAO 9303 eMRTD).
+# Algerian eID forked by Zidoun-Abdou.
+# Vendored into the Cortixia KYC repo on the `driving-licence` branch
+# (2026-05-10) and minimally extended with ISO/IEC 18013-3 IDL applet
+# support (AID A0000002480200) so the Algerian driving licence can be
+# read by the same BAC machinery as the eID/passport.
+name: dmrtd
+description: Dart implementation of ICAO Doc 9303 MRTD + ISO 18013-3 IDL applet selector
+publish_to: 'none'
+
+version: 1.4.3+dl1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  archive: ^3.1.2
+  collection: ^1.16.0
+  convert: ^3.0.0
+  crypto: ^3.0.1
+  expandable: ^5.0.1
+  fixnum: ^1.0.0
+  flutter_nfc_kit: '^3.1.0'
+  logging: ^1.0.1
+  meta: ^1.3.0
+  tripledes_nullsafety: ^1.0.3
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_lints: ^2.0.1
+  flutter_test:
+    sdk: flutter
+  lints: ^2.0.0
+  test: ^1.16.5

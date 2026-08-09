@@ -1,0 +1,7 @@
+# Integration tests that hit a live Cortixia licensing server are tagged
+# 'live' and skipped by default. Run them explicitly with credentials:
+#
+#   CORTIXIA_API_TOKEN=ck_live_xxx flutter test --tags live
+tags:
+  live:
+    skip: "needs CORTIXIA_API_TOKEN; run with --tags live"
