@@ -1,0 +1,57 @@
+Cortixia KYC SDK — Software Licence Agreement
+Copyright (c) 2026 Cortixia. All rights reserved.
+
+1. GRANT OF LICENCE
+   Subject to the terms below, Cortixia grants you a non-exclusive,
+   non-transferable, revocable licence to download, install and use this
+   software development kit (the "SDK") solely to integrate the Cortixia
+   e-KYC service into your own applications, and only while you hold a
+   valid Cortixia API token and an active subscription obtained from
+   https://www.e-kyc.online/.
+
+2. RESTRICTIONS
+   Except to the extent this restriction is prohibited by applicable law,
+   you may not:
+   (a) redistribute, publish, sublicense, sell, rent or lease the SDK, or
+       any modified version of it, as a standalone product or as part of a
+       competing software development kit;
+   (b) remove or alter any copyright, trademark or licensing notices;
+   (c) use the SDK to build or assist in building a product that competes
+       with the Cortixia e-KYC service;
+   (d) circumvent, disable or interfere with the SDK's licensing,
+       authentication or usage-reporting mechanisms.
+
+   Modifying the SDK locally for the purposes of your own integration is
+   permitted.
+
+3. SERVICE DEPENDENCY
+   The SDK requires Cortixia's hosted services to function. Use of those
+   services is governed by the terms accepted when the API token was
+   issued, including any usage quotas.
+
+4. DATA PROTECTION
+   You are responsible for obtaining any consent required to process the
+   personal and biometric data of your end users, and for complying with
+   all applicable data-protection laws.
+
+5. THIRD-PARTY COMPONENTS
+   The SDK includes third-party components distributed under their own
+   licences. See THIRD_PARTY_NOTICES.md. Those licences continue to apply
+   to those components and are not superseded by this agreement.
+
+6. NO WARRANTY
+   THE SDK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+
+7. LIMITATION OF LIABILITY
+   TO THE MAXIMUM EXTENT PERMITTED BY LAW, CORTIXIA SHALL NOT BE LIABLE FOR
+   ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM OR IN CONNECTION WITH
+   THE SDK OR ITS USE.
+
+8. TERMINATION
+   This licence terminates automatically if you breach any of its terms, or
+   when your Cortixia subscription ends. On termination you must stop using
+   and distributing applications that embed the SDK.
+
+Contact: contact@cortixia-ekyc.com

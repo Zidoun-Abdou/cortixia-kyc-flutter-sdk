@@ -1,0 +1,41 @@
+name: cortixia_kyc_sdk
+description: >-
+  Cortixia KYC SDK for Flutter — Algerian eKYC document scanning (biometric ID
+  card, passport, driving licence) via MRZ + NFC chip reading, local datagroup
+  decoding, and face-matching/liveness. Gated by a Cortixia API token from
+  https://www.e-kyc.online/portal/.
+version: 0.2.0
+homepage: https://www.e-kyc.online
+publish_to: 'none'  # distributed as a git dependency
+
+environment:
+  sdk: ^3.9.2
+  flutter: '>=3.3.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Vendored dmrtd fork (eMRTD BAC + ISO/IEC 18013-3 IDL applet additions for
+  # the Algerian driving licence). Path is relative to this package root and
+  # resolves both for local path consumers and git consumers.
+  dmrtd:
+    path: vendor/dmrtd_dl
+
+  camera: ^0.10.5+5
+  google_mlkit_text_recognition: ^0.15.0
+  http: ^1.1.0
+  path_provider: ^2.1.1
+  path: ^1.8.3
+  logging: ^1.2.0
+  flutter_spinkit: ^5.2.0
+  share_plus: ^10.1.4  # debugMode-only raw-DG export in the DL flow
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+# Pure Dart package — no native code of its own. Datagroup decoding (and the
+# JPEG-2000 conversion it used to need) runs on the Cortixia server, so host
+# apps need no extra Maven repositories or platform registrants.
