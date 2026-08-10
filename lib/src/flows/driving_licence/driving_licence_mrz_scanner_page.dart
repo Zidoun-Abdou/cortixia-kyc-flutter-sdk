@@ -413,8 +413,14 @@ Date d'expiration: $expiryDate
       host.mrz = mrz;
     } on KycException catch (e) {
       if (!mounted) return;
-      setState(() => mrzError = e.message);
+      // The camera was torn down before this call, so without restarting the
+      // scan the user is stranded on a frozen preview with no way forward.
+      // That, plus mrzError never being rendered, is why a rejected MRZ looked
+      // like the button doing nothing at all: tapping again just repeated a
+      // failure nobody could see.
       isNavigatingAway = false;
+      setState(() => mrzError = e.message);
+      restartScanning();
       return;
     }
 
@@ -681,6 +687,46 @@ Date d'expiration: $expiryDate
                           color: Colors.grey[600],
                         ),
                         textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+          // Server-side MRZ rejection. Rendered LAST so it paints above the
+          // camera preview. This used to be assigned to `mrzError` and never
+          // rendered at all, which made a rejected read indistinguishable from
+          // a dead button — the worst way for this to fail, because the user
+          // cannot tell whether to retry, reposition, or give up.
+          if (mrzError != null)
+            Positioned(
+              top: 12,
+              left: 12,
+              right: 12,
+              child: Material(
+                color: const Color(0xFFFEE2E2),
+                borderRadius: BorderRadius.circular(12),
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline, color: Color(0xFFB91C1C)),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          mrzError!,
+                          style: const TextStyle(
+                            color: Color(0xFF7F1D1D),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, size: 18, color: Color(0xFF7F1D1D)),
+                        onPressed: () => setState(() => mrzError = null),
                       ),
                     ],
                   ),
