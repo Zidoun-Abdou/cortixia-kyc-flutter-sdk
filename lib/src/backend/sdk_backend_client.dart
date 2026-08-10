@@ -66,7 +66,7 @@ class KycLicenseInfo {
 
 /// HTTP client for the Cortixia licensing/metering API (/api/sdk/v1/).
 class SdkBackendClient {
-  static const sdkVersion = '0.3.2';
+  static const sdkVersion = '0.3.3';
 
   final String baseUrl;
   final String apiToken;
@@ -135,7 +135,10 @@ class SdkBackendClient {
     if (resp.statusCode == 401 || resp.statusCode == 402) {
       throw _licenseErrorFrom(resp);
     }
-    String message = 'MRZ refusée (HTTP ${resp.statusCode})';
+    // A raw status code tells the person holding the phone nothing about what
+    // to do next. Prefer the server's message; fall back to an instruction.
+    String message =
+        'MRZ illisible. Repositionnez le document bien à plat et réessayez.';
     try {
       final json = jsonDecode(resp.body) as Map<String, dynamic>;
       if (json['message'] is String) message = json['message'] as String;

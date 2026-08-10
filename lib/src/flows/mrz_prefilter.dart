@@ -31,10 +31,60 @@ class MrzPrefilter {
   int get lineCount => documentType == KycDocumentType.passport ? 2 : 3;
   bool get exhausted => _calls >= maxCallsPerScan;
 
-  /// Uppercase and remove whitespace. Never "corrects" characters: billing
-  /// correctness depends on an invalid MRZ staying invalid.
-  static List<String> normalise(Iterable<String> lines) =>
-      lines.map((l) => l.replaceAll(RegExp(r'\s+'), '').toUpperCase()).toList();
+  /// Single-width glyphs OCR produces for the MRZ filler `<`. None of these
+  /// exist in the MRZ alphabet (`A-Z`, `0-9`, `<`), so the mapping is exact.
+  static final _singleGlyph = RegExp(r'[\u2039\u203A\u3008\u3009\u2329\u232A'
+      r'\uFF1C\uFF1E\u02C2\u02C3]');
+
+  /// Double-width angle quotes. ML Kit emits one of these for a `<<` pair —
+  /// but a bold or serifed single `<` can also read as `«`, so the width is
+  /// genuinely ambiguous and is resolved by line length below.
+  static final _doubleGlyph = RegExp(r'[\u00AB\u00BB\u226A\u226B]');
+
+  /// Expected characters per line: TD3 (passport) is 44, TD1 and the driving
+  /// licence are 30.
+  int get _lineLength => documentType == KycDocumentType.passport ? 44 : 30;
+
+  /// Uppercase, strip whitespace, and map OCR glyphs that can ONLY be a
+  /// misread filler character.
+  ///
+  /// This is character-set normalisation, not content correction, and the
+  /// distinction is what makes it safe. Guessing `O`->`0` or `S`->`5` would be
+  /// a guess about the *content* and could turn an invalid MRZ into a
+  /// valid-looking wrong one — so that is still never done. The glyphs handled
+  /// here are not members of the MRZ alphabet at all, so nothing is invented.
+  ///
+  /// Width ambiguity is resolved by the fixed line length rather than assumed:
+  /// whichever of `<` or `<<` lands the line on its expected size is the right
+  /// reading. If neither does, the line is broken for other reasons and the
+  /// server rejects it as it would have anyway — the check digits remain the
+  /// final authority, so a mistaken expansion cannot manufacture a valid MRZ.
+  List<String> normaliseLines(Iterable<String> lines) => lines.map((line) {
+        var out = line
+            .replaceAll(RegExp(r'\s+'), '')
+            .toUpperCase()
+            .replaceAll(_singleGlyph, '<');
+        if (_doubleGlyph.hasMatch(out)) {
+          final asDouble = out.replaceAll(_doubleGlyph, '<<');
+          final asSingle = out.replaceAll(_doubleGlyph, '<');
+          out = asDouble.length == _lineLength
+              ? asDouble
+              : asSingle.length == _lineLength
+                  ? asSingle
+                  : asDouble; // a double chevron is the commoner reading
+        }
+        return out;
+      }).toList();
+
+  /// Length-agnostic form, for callers without a document type in hand.
+  /// Prefer [normaliseLines]: it can disambiguate the double-width glyphs.
+  static List<String> normalise(Iterable<String> lines) => lines
+      .map((l) => l
+          .replaceAll(RegExp(r'\s+'), '')
+          .toUpperCase()
+          .replaceAll(_singleGlyph, '<')
+          .replaceAll(_doubleGlyph, '<<'))
+      .toList();
 
   /// Shape check only — is this plausibly an MRZ of the expected format?
   bool looksLikeMrz(List<String> lines) {

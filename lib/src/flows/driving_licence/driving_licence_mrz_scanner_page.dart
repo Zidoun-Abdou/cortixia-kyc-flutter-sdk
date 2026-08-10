@@ -406,7 +406,7 @@ Date d'expiration: $expiryDate
     try {
       final payload = await host.backend.parseMrz(
         documentType: KycDocumentType.drivingLicence.wire,
-        lines: MrzPrefilter.normalise(rawMrzLines),
+        lines: MrzPrefilter(KycDocumentType.drivingLicence).normaliseLines(rawMrzLines),
         sessionId: host.sessionId,
       );
       mrz = MrzResult.fromJson(KycDocumentType.drivingLicence, payload);

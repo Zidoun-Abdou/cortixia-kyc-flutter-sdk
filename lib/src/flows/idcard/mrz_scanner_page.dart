@@ -399,7 +399,7 @@ Date d'expiration: $expiryDate
     try {
       final payload = await host.backend.parseMrz(
         documentType: KycDocumentType.idCard.wire,
-        lines: MrzPrefilter.normalise(rawMrzLines),
+        lines: MrzPrefilter(KycDocumentType.idCard).normaliseLines(rawMrzLines),
         sessionId: host.sessionId,
       );
       mrz = MrzResult.fromJson(KycDocumentType.idCard, payload);

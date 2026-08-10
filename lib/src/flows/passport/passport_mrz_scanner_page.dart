@@ -410,7 +410,7 @@ Date d'expiration: $expiryDate
     try {
       final payload = await host.backend.parseMrz(
         documentType: KycDocumentType.passport.wire,
-        lines: MrzPrefilter.normalise(rawMrzLines),
+        lines: MrzPrefilter(KycDocumentType.passport).normaliseLines(rawMrzLines),
         sessionId: host.sessionId,
       );
       mrz = MrzResult.fromJson(KycDocumentType.passport, payload);

@@ -115,6 +115,58 @@ void main() {
     expect(mrz.surname, 'ZIDOUN');
   });
 
+  group('MRZ glyph normalisation', () {
+    // ML Kit renders the MRZ filler as a French guillemet on some documents.
+    // Reported from a real Xiaomi scan: "caractère invalide dans la MRZ : '«'".
+    final idCard = MrzPrefilter(KycDocumentType.idCard);
+
+    test('« expands to << when that lands the line on 30 characters', () {
+      // Built arithmetically rather than counted by hand: 28 real characters
+      // plus a « standing in for a << pair is 30 once expanded.
+      final line = '${'A' * 28}«';
+      final out = idCard.normaliseLines([line]);
+      expect(out.single.length, 30);
+      expect(out.single.endsWith('<<'), isTrue);
+      expect(out.single.contains('«'), isFalse);
+    });
+
+    test('« collapses to < when THAT is what fits', () {
+      // 29 real characters plus a « standing in for a single < is already 30.
+      final line = '${'A' * 29}«';
+      final out = idCard.normaliseLines([line]);
+      expect(out.single.length, 30,
+          reason: 'expanding to << would overshoot to 31 and shift every '
+              'fixed-position field after it');
+      expect(out.single.endsWith('A<'), isTrue);
+    });
+
+    test('single-width glyphs map to < unconditionally', () {
+      final out = idCard.normaliseLines(['IDDZA\u2039\uFF1C\u3008']);
+      expect(out.single, 'IDDZA<<<');
+    });
+
+    test('passport lines disambiguate against 44, not 30', () {
+      final passport = MrzPrefilter(KycDocumentType.passport);
+      final line = '${'A' * 42}«';  // 42 real chars + « -> 44
+      final out = passport.normaliseLines([line]);
+      expect(out.single.length, 44);
+      expect(out.single.endsWith('<<'), isTrue);
+    });
+
+    test('content characters are never guessed at', () {
+      // O/0 and S/5 confusions are content, not glyph artifacts: correcting
+      // them could turn an invalid MRZ into a valid-looking wrong one.
+      final out = idCard.normaliseLines(['IDDZAO12S4567897109950302004330']);
+      expect(out.single.contains('O'), isTrue);
+      expect(out.single.contains('S'), isTrue);
+    });
+
+    test('whitespace is stripped and case normalised', () {
+      final out = idCard.normaliseLines([' iddza 123 ']);
+      expect(out.single, 'IDDZA123');
+    });
+  });
+
   test('MRZ pre-filter needs two consecutive identical frames', () {
     final f = MrzPrefilter(KycDocumentType.idCard);
     final lines = [
