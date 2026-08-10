@@ -145,19 +145,27 @@ class _MrzScannerPageState extends State<MrzScannerPage> with WidgetsBindingObse
   Future<void> _closeCamera() async {
     if (isCameraDisposed || !isCameraInitialized) return;
 
+    // Claim the camera BEFORE the first await. These flags track the camera,
+    // not the widget, so they must be set unconditionally — the previous
+    // version only set them inside `if (mounted)`, which meant navigating away
+    // (the common case) left isCameraDisposed false and let the widget's
+    // dispose() dispose the controller a SECOND time. A double dispose surfaces
+    // as `CameraCaptureSession.close()` on a null reference, which either
+    // crashes the app or wedges the camera plugin on the platform thread — and
+    // a wedged platform thread hangs every later MethodChannel call, including
+    // the NFC availability check, so the "Lire avec NFC" button silently does
+    // nothing until the app is restarted.
+    isCameraDisposed = true;
+    isCameraInitialized = false;
+
     try {
       await _stopImageStream();
       await cameraController.dispose();
-
-      if (mounted) {
-        setState(() {
-          isCameraInitialized = false;
-          isCameraDisposed = true;
-        });
-      }
     } catch (e) {
       print('Erreur lors de la fermeture de la caméra: $e');
     }
+
+    if (mounted) setState(() {});
   }
 
   Future<void> _reopenCamera() async {
@@ -170,8 +178,16 @@ class _MrzScannerPageState extends State<MrzScannerPage> with WidgetsBindingObse
     await initializeCamera();
   }
 
+  /// Synchronous teardown for `dispose()`, which cannot await.
+  ///
+  /// Idempotent with [_closeCamera]: whichever runs first claims the camera by
+  /// setting the flag before touching the controller, so the other becomes a
+  /// no-op. Disposing a CameraController twice is what produced the null
+  /// CameraCaptureSession crash.
   void _disposeCamera() {
     if (isCameraDisposed) return;
+    isCameraDisposed = true;
+    isCameraInitialized = false;
 
     try {
       if (isStreaming) {
@@ -179,7 +195,6 @@ class _MrzScannerPageState extends State<MrzScannerPage> with WidgetsBindingObse
         isStreaming = false;
       }
       cameraController.dispose();
-      isCameraDisposed = true;
     } catch (e) {
       print('Erreur lors de la suppression de la caméra: $e');
     }
@@ -410,7 +425,12 @@ Date d'expiration: $expiryDate
         doe: mrz.expiryDate,
       ),
     ));
-    if (mounted) isNavigatingAway = false;
+    // Back from the chip screen (the user cancelled, or the read failed and
+    // they popped). The camera was torn down before navigating, so without
+    // this the scanner comes back to a dead preview and looks frozen.
+    if (!mounted) return;
+    isNavigatingAway = false;
+    restartScanning();
   }
 
   @override

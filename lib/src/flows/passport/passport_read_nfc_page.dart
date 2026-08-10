@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:io';
@@ -73,9 +74,26 @@ class _PassportReadNfcPageState extends State<PassportReadNfcPage> with SingleTi
   }
 
   Future<void> _checkNfcAndScan() async {
-    final status = await NfcProvider.nfcStatus;
-    if (status != NfcStatus.enabled && mounted) {
-      setState(() => _status = '⚠️ NFC est désactivé. Veuillez l\'activer et réessayer.');
+    // The availability check is a platform-channel call, so it inherits the
+    // health of the platform thread. When that thread is blocked the future
+    // never completes and the button appears to do nothing at all — no error,
+    // no spinner, no status text. A visible failure beats a dead button, so
+    // treat "no answer" as a failure rather than waiting forever.
+    NfcStatus status;
+    try {
+      status = await NfcProvider.nfcStatus.timeout(const Duration(seconds: 5));
+    } on TimeoutException {
+      _log.warning('NFC availability check timed out');
+      if (mounted) {
+        setState(() => _status =
+            '⚠️ Le lecteur NFC ne répond pas. Fermez puis rouvrez l\'application.');
+      }
+      return;
+    }
+    if (status != NfcStatus.enabled) {
+      if (mounted) {
+        setState(() => _status = '⚠️ NFC est désactivé. Veuillez l\'activer et réessayer.');
+      }
       return;
     }
     await _readMRTD();

@@ -66,7 +66,7 @@ class KycLicenseInfo {
 
 /// HTTP client for the Cortixia licensing/metering API (/api/sdk/v1/).
 class SdkBackendClient {
-  static const sdkVersion = '0.3.0';
+  static const sdkVersion = '0.3.1';
 
   final String baseUrl;
   final String apiToken;
