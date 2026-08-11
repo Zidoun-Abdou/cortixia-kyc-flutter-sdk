@@ -66,7 +66,7 @@ class KycLicenseInfo {
 
 /// HTTP client for the Cortixia licensing/metering API (/api/sdk/v1/).
 class SdkBackendClient {
-  static const sdkVersion = '0.3.3';
+  static const sdkVersion = '0.3.4';
 
   final String baseUrl;
   final String apiToken;
@@ -265,8 +265,18 @@ class SdkBackendClient {
       if (resp.statusCode == 401 || resp.statusCode == 402) {
         throw _licenseErrorFrom(resp);
       }
-      throw KycLivenessException(KycLivenessError.serverError,
-          'Liveness proxy error: HTTP ${resp.statusCode}');
+      // Never surface a raw status code to an end user. The liveness upstream
+      // can be momentarily unavailable (502); the portal returns a French
+      // message for exactly that case — prefer it, and fall back to a
+      // retryable instruction rather than "HTTP 502".
+      String message =
+          "Service de vérification momentanément indisponible. Réessayez.";
+      try {
+        final body = jsonDecode(resp.body) as Map<String, dynamic>;
+        final m = body['message'];
+        if (m is String && m.isNotEmpty) message = m;
+      } catch (_) {}
+      throw KycLivenessException(KycLivenessError.serverError, message);
     } on KycException {
       rethrow;
     } catch (e) {
