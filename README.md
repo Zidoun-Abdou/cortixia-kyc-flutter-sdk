@@ -33,6 +33,32 @@ dependencies:
 That's it — the SDK ships no native code of its own, so there are no extra
 Maven repositories or platform registrants to configure.
 
+### Release build (R8 / ProGuard)
+
+The SDK reads the MRZ with ML Kit, which references optional per-language
+recognizers (Chinese, Devanagari, Japanese, Korean) it does not bundle. A
+release build fails at `minifyReleaseWithR8` until those are suppressed. Add to
+`android/app/proguard-rules.pro`:
+
+```proguard
+-dontwarn com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions$Builder
+-dontwarn com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions
+-dontwarn com.google.mlkit.vision.text.devanagari.DevanagariTextRecognizerOptions$Builder
+-dontwarn com.google.mlkit.vision.text.devanagari.DevanagariTextRecognizerOptions
+-dontwarn com.google.mlkit.vision.text.japanese.JapaneseTextRecognizerOptions$Builder
+-dontwarn com.google.mlkit.vision.text.japanese.JapaneseTextRecognizerOptions
+-dontwarn com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions$Builder
+-dontwarn com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions
+```
+
+and reference it in the `release` build type:
+
+```kotlin
+isMinifyEnabled = true
+isShrinkResources = true
+proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+```
+
 ## iOS
 
 Not supported yet — the driving-licence NFC applet id is not declared in the
