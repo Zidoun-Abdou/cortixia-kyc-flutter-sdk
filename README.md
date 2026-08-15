@@ -15,7 +15,7 @@ dependencies:
   cortixia_kyc_sdk:
     git:
       url: https://github.com/Zidoun-Abdou/cortixia-kyc-flutter-sdk.git
-      ref: v0.2.1
+      ref: v0.4.0
 ```
 
 ## Android requirements
