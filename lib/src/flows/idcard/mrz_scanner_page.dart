@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -85,7 +86,11 @@ class _MrzScannerPageState extends State<MrzScannerPage> with WidgetsBindingObse
           cameras[0],
           ResolutionPreset.max,
           enableAudio: false,
-          imageFormatGroup: ImageFormatGroup.nv21,
+          // iOS ignores nv21 and always yields bgra8888 — request the format the
+          // platform actually delivers so the ML Kit metadata matches the frame.
+          imageFormatGroup: Platform.isAndroid
+              ? ImageFormatGroup.nv21
+              : ImageFormatGroup.bgra8888,
         );
 
         await cameraController.initialize();

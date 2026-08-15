@@ -61,8 +61,39 @@ proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard
 
 ## iOS
 
-Not supported yet — the driving-licence NFC applet id is not declared in the
-iOS entitlements. KYC flows are Android-only for now.
+Supported for the **ID card and passport** flows (device-verified). Your host
+app needs, in `ios/`:
+
+1. **A paid Apple Developer team** — the NFC entitlement is not available to
+   free/Personal teams.
+2. `Runner/Info.plist`:
+
+```xml
+<key>NSCameraUsageDescription</key>
+<string>La caméra est utilisée pour scanner votre document et vérifier votre identité.</string>
+<key>NFCReaderUsageDescription</key>
+<string>Le lecteur NFC lit la puce de votre document d'identité.</string>
+<key>com.apple.developer.nfc.readersession.iso7816.select-identifiers</key>
+<array>
+  <string>A0000002471001</string>
+</array>
+```
+
+3. A `Runner/Runner.entitlements` wired into the target (Xcode: Signing &
+   Capabilities → + Capability → **Near Field Communication Tag Reading**, or
+   by hand):
+
+```xml
+<key>com.apple.developer.nfc.readersession.formats</key>
+<array><string>TAG</string></array>
+```
+
+4. `Podfile`: `platform :ios, '15.5'` (required by `google_mlkit_*`).
+
+iOS UX notes: the system "Ready to Scan" sheet handles the NFC prompt, and the
+iPhone's NFC antenna is at the **top** back edge (unlike Android's mid-back).
+The **driving-licence** flow remains Android-only (its IDL applet id
+`A0000002480200` would need adding to the select-identifiers list; untested).
 
 ## Quick start
 
@@ -142,7 +173,7 @@ Cortixia. Chip bytes are processed in memory for the duration of the call.
 | v0.1 | MRZ + NFC reading, full flow UI, `KycResult`, token licensing and usage metering | ✅ |
 | v0.2 | Server-side document decoding — no native code, no JitPack, passport JPEG-2000 handled server-side | ✅ |
 | v0.2.1 | All traffic over HTTPS (`https://www.e-kyc.online`) — no cleartext permission needed | ✅ |
-| next | Theming API, localization (strings are French today), iOS support | ⏳ |
+| next | Theming API, localization (strings are French today) | ⏳ |
 
 `package:cortixia_kyc_sdk/nfc.dart` re-exports the vendored dmrtd fork for
 hosts that need low-level chip access.

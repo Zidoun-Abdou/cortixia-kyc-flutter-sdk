@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
@@ -83,7 +84,11 @@ class _PassportMrzScannerPageState extends State<PassportMrzScannerPage> with Wi
           cameras[0],
           ResolutionPreset.max,
           enableAudio: false,
-          imageFormatGroup: ImageFormatGroup.nv21,
+          // iOS ignores nv21 and always yields bgra8888 — request the format the
+          // platform actually delivers so the ML Kit metadata matches the frame.
+          imageFormatGroup: Platform.isAndroid
+              ? ImageFormatGroup.nv21
+              : ImageFormatGroup.bgra8888,
         );
 
         await cameraController.initialize();

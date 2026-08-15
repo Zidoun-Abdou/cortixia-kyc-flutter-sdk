@@ -41,18 +41,24 @@ String formatMrzDate(String date, String type) {
   return "$month/$day/$fullYear";
 }
 
-// Convert NV21 camera image to InputImage for ML Kit
+// Convert a camera frame to an ML Kit InputImage.
+//
+// Android streams NV21 (we request it explicitly); iOS always delivers
+// BGRA8888 regardless of the requested group. Both are single-plane, so the
+// same bytes/bytesPerRow access works — but the metadata format MUST match
+// the actual frame or ML Kit silently recognizes nothing (the original
+// NV21-only version made the MRZ scanner a no-op on iOS).
 Future<InputImage?> convertNV21CameraImageToInputImage(
     CameraImage image, InputImageRotation rotation) async {
   final format = InputImageFormatValue.fromRawValue(image.format.raw);
 
-  if (format == InputImageFormat.nv21) {
+  if (format == InputImageFormat.nv21 || format == InputImageFormat.bgra8888) {
     return InputImage.fromBytes(
       bytes: image.planes[0].bytes,
       metadata: InputImageMetadata(
         size: Size(image.width.toDouble(), image.height.toDouble()),
         rotation: rotation,
-        format: InputImageFormat.nv21,
+        format: format!,
         bytesPerRow: image.planes[0].bytesPerRow,
       ),
     );

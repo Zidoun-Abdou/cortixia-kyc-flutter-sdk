@@ -4,7 +4,7 @@ description: >-
   card, passport, driving licence) via MRZ + NFC chip reading, secure
   server-side decoding, and face-matching/liveness. Gated by a Cortixia API token from
   https://www.e-kyc.online/portal/.
-version: 0.3.4
+version: 0.4.0
 homepage: https://www.e-kyc.online
 publish_to: 'none'  # distributed as a git dependency
 
